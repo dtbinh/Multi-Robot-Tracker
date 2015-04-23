@@ -37,7 +37,6 @@ import javax.swing.border.Border;
 import server.utils.CircleMarker;
 import server.utils.PixelOperations;
 import tracking.RobotKalman;
-import tracking.Vector2d;
 
 import com.googlecode.javacpp.Pointer;
 import com.googlecode.javacv.CanvasFrame;
@@ -47,6 +46,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
+import commoninterface.mathutils.Vector2d;
 
 public class ComputateCrossMarker extends Thread {
 

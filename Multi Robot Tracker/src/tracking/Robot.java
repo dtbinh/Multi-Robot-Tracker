@@ -2,6 +2,8 @@ package tracking;
 
 import java.io.Serializable;
 
+import commoninterface.mathutils.Vector2d;
+
 /**
  * 
  * Simple class that will be transmitted between the Server

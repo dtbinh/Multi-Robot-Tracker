@@ -1,96 +1,75 @@
 package server;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import tracking.Robot;
-import tracking.Vector2d;
+import java.io.Serializable;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
-public class LocationServer extends Thread{
+import commoninterface.network.NetworkUtils;
+
+public class LocationServer implements Serializable{
 	
-	private static int PORT = 1338;
-	private ServerSocket server;
-	private TrackingSystem tracker;
+	private static final long serialVersionUID = 4377822865023552482L;
+	private static int PORT = 8888;
+	private static int RETRANSMIT_PORT = 8888+100;
+	private BroadcastSender sender;
+	private String ownAddress;
+	private boolean retransmit = true;
 	
-	public LocationServer(TrackingSystem tracker) {
-		try {
-			server = new ServerSocket(PORT);
-			this.tracker = tracker;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	
+	public LocationServer() {
+		sender = new BroadcastSender();
 	}
 	
-	@Override
-	public void run() {
-		while(true) {
+	public void sendMessage(String message) {
+		sender.sendMessage(message);
+	}
+	
+	class BroadcastSender {
+		
+		private DatagramSocket socket;
+		private DatagramSocket retransmitSocket;
+		
+		public BroadcastSender() {
 			try {
-				Socket socket = server.accept();
+				InetAddress ownInetAddress = InetAddress.getByName(NetworkUtils.getAddress());
+				ownAddress = ownInetAddress.getHostAddress();
+				System.out.println("SENDER "+ownInetAddress);
+				socket = new DatagramSocket(PORT+1, ownInetAddress);
+				socket.setBroadcast(true);
 				
-				System.out.println("Client connected");
-				tracker.getEnvironment().removeAllObjects();
-				
-				new InputHandler(socket).start();
-				new OutputHandler(socket).start();
-				
+				if(retransmit) {
+					retransmitSocket = new DatagramSocket(RETRANSMIT_PORT-1,ownInetAddress);
+					retransmitSocket.setBroadcast(true);
+				}
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	class OutputHandler extends Thread {
-		private ObjectOutputStream output;
 		
-		public OutputHandler(Socket socket) throws IOException {
-			output = new ObjectOutputStream(socket.getOutputStream());
-		}
-		
-		public void run() {
-			
+		public void sendMessage(String message) {
 			try {
-			
-				while(true) {
-					//Enviar o Robot e o ID
-					output.writeObject(tracker.getRobots().clone());
-
-					output.flush();
-					output.reset();
-					Thread.sleep(10);
-				}
-			} catch(Exception e) {
-				System.out.println("Client disconnected");
-			}
-		}
-	}
-	
-	class InputHandler extends Thread {
-		private ObjectInputStream input;
-		
-		public InputHandler(Socket socket) throws IOException {
-			input = new ObjectInputStream(socket.getInputStream());
-		}
-		
-		public void run() {
-			
-			try {
-				while(true) {
-					
-					Robot object = (Robot)input.readObject();
-					if(object.orientation == 1) {
-						System.out.println("Received object "+object.x+" "+object.y);
-						tracker.getEnvironment().addObjectCoordinates(new Vector2d(object.x,object.y));
-					}else if(object.orientation == 0) {
-						tracker.getEnvironment().removeObject(new Vector2d(object.x,object.y));
-					}
-					
-				}
-			} catch(Exception e) {
+				byte[] sendData = message.getBytes();
+				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("255.255.255.255"), PORT);
+				socket.send(sendPacket);
+			} catch(IOException e) {
+				e.printStackTrace();
 			}
 		}
 		
+		public void retransmit(String message) {
+			if(!retransmit)
+				return;
+			
+			try {
+				byte[] sendData = message.getBytes();
+				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("255.255.255.255"), RETRANSMIT_PORT);
+				retransmitSocket.send(sendPacket);
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 }

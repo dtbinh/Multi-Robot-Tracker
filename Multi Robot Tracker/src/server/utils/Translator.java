@@ -1,6 +1,6 @@
 package server.utils;
 
-import tracking.Vector2d;
+import commoninterface.mathutils.Vector2d;
 
 /**
  * Converts a pixel coordinate to a real-world coordinate,

@@ -35,7 +35,6 @@ import server.utils.HSVColor;
 import server.utils.PixelOperations;
 import server.utils.Translator;
 import tracking.Robot;
-import tracking.Vector2d;
 
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
@@ -46,6 +45,8 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_highgui;
 import com.googlecode.javacv.cpp.opencv_highgui.CvCapture;
+
+import commoninterface.mathutils.Vector2d;
 
 /**
  * Handles the robot tracking based on images from a camera.
@@ -115,6 +116,7 @@ public class Video extends Thread{
     long startingTime = System.currentTimeMillis();
 	
     private MeasureLatencyServer latencyServer;
+    private ServerEnvironment environment;
     
     public Video(boolean displayVideo, boolean measureLatency) {
 		colorAppearances = new HashMap<Integer, Integer>();
@@ -124,6 +126,7 @@ public class Video extends Thread{
     	threadsRobots = new HashMap<ComputateCrossMarker, Robot>();
     	robots = new HashMap<Integer, Robot>();
     	robotIdsColor = new HashMap<Integer, Color>();
+    	environment = new ServerEnvironment();
     	
     	colorsIntervals = loadColorsConfigurationFromFile();
     	
@@ -349,6 +352,9 @@ public class Video extends Thread{
 			t.setLabelText(t.getColor(), robotID, r.getPosition(), t.robotOrientation, t.isSuccessfulIntersection());
 		}
 
+		//Fazer set as alterações do ambiente
+		environment.updateRobotsLocation(robots);
+		
 		if(latencyServer != null)
 			measureLatency();
 		
@@ -491,6 +497,11 @@ public class Video extends Thread{
 		return new Vector2d(p.x(),p.y());
 	}
 
+	public ServerEnvironment getEnvironment() {
+		return environment;
+	}
+
+	
 	public void measureLatency(){
 		int arenaCenterX = 560;
 		int arenaCenterY = 420;
