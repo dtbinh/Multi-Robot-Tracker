@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="libs/JKalman.jar"/>
 	<classpathentry kind="lib" path="libs/pccomm.jar"/>
 	<classpathentry kind="lib" path="libs/RXTXcomm.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/CommonInterface"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
