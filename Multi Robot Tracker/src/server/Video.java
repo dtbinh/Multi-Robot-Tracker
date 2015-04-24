@@ -323,8 +323,8 @@ public class Video extends Thread{
 				ccm.start();
 			}
 			
-			IplImage imageCopy  = IplImage.create( cvGetSize(image), 8, 3);
-			cvCopy(image, imageCopy);
+			IplImage imageCopy  = IplImage.create( cvGetSize(croppedImage), 8, 3);
+			cvCopy(croppedImage, imageCopy);
 			ccm.setColor(robotIdsColor.get(robotID));
 			ccm.setParameters(imageCopy, circlesMap.get(robotID));
 			
@@ -345,10 +345,10 @@ public class Video extends Thread{
 		for (ComputateCrossMarker t : processingThreads.values()) {
 			//Check when not get the intersection
 			
-			cvLine(currentImage, t.getEstTail(), t.getEstIntersection(), CvScalar.YELLOW, 3, CV_AA, 0);
-	        cvLine(currentImage, t.getEstCenter(), t.getEstCenter(), CvScalar.RED, 3, CV_AA, 0);
-	        cvLine(currentImage, t.getEstTail(), t.getEstTail(), CvScalar.BLUE, 3, CV_AA, 0);
-	        cvLine(currentImage, t.getEstIntersection(), t.getEstIntersection(), CvScalar.BLUE, 3, CV_AA, 0);
+			cvLine(croppedImage, t.getEstTail(), t.getEstIntersection(), CvScalar.YELLOW, 3, CV_AA, 0);
+	        cvLine(croppedImage, t.getEstCenter(), t.getEstCenter(), CvScalar.RED, 3, CV_AA, 0);
+	        cvLine(croppedImage, t.getEstTail(), t.getEstTail(), CvScalar.BLUE, 3, CV_AA, 0);
+	        cvLine(croppedImage, t.getEstIntersection(), t.getEstIntersection(), CvScalar.BLUE, 3, CV_AA, 0);
 	        
 	        Robot r = threadsRobots.get(t);
 	        
@@ -370,12 +370,13 @@ public class Video extends Thread{
 		if(latencyServer != null)
 			measureLatency();
 		
-		showImage(currentImage);
+		showImage(croppedImage);
         
 		cvCopy(image, currentImage);
 		
 		cvReleaseMemStorage(circles.storage());
 		imageGray.release();
+		croppedImage.release();
 	}
 
 	public HashMap<Integer, Robot> getRobots() {
