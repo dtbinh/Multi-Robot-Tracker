@@ -23,7 +23,7 @@ public class ServerEnvironment {
 	private static int WIDTH = 10;
 	
 	private int[][] preyLocation = {{15,85,20,105},{140,200,20,105}};
-	//Adicoinar os IP's dos robots por ordem de ID
+	//Adicionar os IP's dos robots por ordem de ID
 	private String[] addresses = {"192.168.3.17"};
 	
 	private int numberOfPreys = 1;
@@ -89,24 +89,25 @@ public class ServerEnvironment {
 		LinkedList<VirtualPositionBroadcastMessage> virtualPositionMessages = new LinkedList<VirtualPositionBroadcastMessage>();
 		
 		for (Integer id : robots.keySet()) {
-			String networkAddress = addresses[id];
-			Robot r = robots.get(id);
-			
-			VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.ROBOT, networkAddress, r.x, r.y, r.orientation);
-			virtualPositionMessages.add(m);
-			
-			Iterator<Vector2d> i = objectsPositions.iterator();
-			
-			while(i.hasNext()){
-				Vector2d prey = i.next();
-				if(r.getPosition().distanceTo(prey)  < consumingDistance){
-					objectsPositions.remove(prey);
-					removeObject(prey);
-					addObjectCoordinates(newPreyPosition());
-					preysCaught++;
+			if(addresses[id] != null){
+				String networkAddress = addresses[id];
+				Robot r = robots.get(id);
+				
+				VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.ROBOT, networkAddress, r.x, r.y, r.orientation);
+				virtualPositionMessages.add(m);
+				
+				Iterator<Vector2d> i = objectsPositions.iterator();
+				
+				while(i.hasNext()){
+					Vector2d prey = i.next();
+					if(r.getPosition().distanceTo(prey)  < consumingDistance){
+						objectsPositions.remove(prey);
+						removeObject(prey);
+						addObjectCoordinates(newPreyPosition());
+						preysCaught++;
+					}
 				}
 			}
-			
 		}
 		
 		int preyNumber = 0;
