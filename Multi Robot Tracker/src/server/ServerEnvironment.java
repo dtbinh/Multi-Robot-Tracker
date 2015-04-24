@@ -118,8 +118,10 @@ public class ServerEnvironment {
 			virtualPositionMessages.add(m);
 		}
 		
-		for (VirtualPositionBroadcastMessage m : virtualPositionMessages)
+		for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
 			locationServer.sendMessage(m.encode());
+			System.out.println("Message send!");
+		}
 		
 	}
 	
