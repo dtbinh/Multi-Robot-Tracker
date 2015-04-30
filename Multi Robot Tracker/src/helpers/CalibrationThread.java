@@ -2,6 +2,7 @@ package helpers;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
 import static com.googlecode.javacv.cpp.opencv_core.cvLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +14,6 @@ import server.utils.CircleMarker;
 import server.utils.HSVColor;
 import server.utils.PixelOperations;
 
-import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -68,11 +68,8 @@ public class CalibrationThread extends Thread {
 //				System.out.println(Thread.currentThread().getName() + " is working!");
 				numberOfComputations++;
 
-				CvPoint p = new CvPoint(1124,100);
-				cvLine(image, p, p, CvScalar.WHITE, 3, CV_AA, 0);
-				
-				double[] hsv = getHSVMarkerColor(image, (int)marker.getX(), (int)marker.getY());
-				double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
+				double[] hsv = getHSVMarkerColor(image, marker);
+				double[] corner = new double[]{0,0,100};
 				
 //				colorA.setBackground(PixelOperations.getHSVColor((int)corner[0], (int)corner[1], (int)corner[2]));
 				
@@ -88,34 +85,36 @@ public class CalibrationThread extends Thread {
 		}
 	}
 
-	private double[] getHSVMarkerColor(IplImage img, int markerX, int markerY){
+	private double[] getHSVMarkerColor(IplImage img, CircleMarker circle){
 		ArrayList<HSVColor> colors = new ArrayList<HSVColor>();
 		
-		double[] hsv = PixelOperations.getPixelHSV(img, markerX, markerY);
+		int sampleRange = 2;
+		
+		double[] hsv = PixelOperations.getPixelHSV(img, (int)circle.getX(),(int)circle.getY());
 		colors.add(new HSVColor(hsv[0], hsv[1], hsv[2]));
 		
-		double[] hsv2 = PixelOperations.getPixelHSV(img, markerX, markerY - 10);
+		double[] hsv2 = PixelOperations.getPixelHSV(img, (int)circle.getX(),(int)circle.getY()-sampleRange);
 		colors.add(new HSVColor(hsv2[0], hsv2[1], hsv2[2]));
 		
-		double[] hsv3 = PixelOperations.getPixelHSV(img, markerX - 10, markerY - 10);
+		double[] hsv3 = PixelOperations.getPixelHSV(img, (int)circle.getX()-sampleRange,(int)circle.getY()-sampleRange);
 		colors.add(new HSVColor(hsv3[0], hsv3[1], hsv3[2]));
 		
-		double[] hsv4 = PixelOperations.getPixelHSV(img, markerX + 10, markerY - 10);
+		double[] hsv4 = PixelOperations.getPixelHSV(img, (int)circle.getX()+sampleRange,(int)circle.getY()-sampleRange);
 		colors.add(new HSVColor(hsv4[0], hsv4[1], hsv4[2]));
 		
-		double[] hsv5 = PixelOperations.getPixelHSV(img, markerX - 10, markerY);
+		double[] hsv5 = PixelOperations.getPixelHSV(img, (int)circle.getX()-sampleRange,(int)circle.getY());
 		colors.add(new HSVColor(hsv5[0], hsv5[1], hsv5[2]));
 		
-		double[] hsv6 = PixelOperations.getPixelHSV(img, markerX + 10, markerY);
+		double[] hsv6 = PixelOperations.getPixelHSV(img, (int)circle.getX()+sampleRange,(int)circle.getY());
 		colors.add(new HSVColor(hsv6[0], hsv6[1], hsv6[2]));
 		
-		double[] hsv7 = PixelOperations.getPixelHSV(img, markerX, markerY + 10);
+		double[] hsv7 = PixelOperations.getPixelHSV(img, (int)circle.getX(),(int)circle.getY()+sampleRange);
 		colors.add(new HSVColor(hsv7[0], hsv7[1], hsv7[2]));
 		
-		double[] hsv8 = PixelOperations.getPixelHSV(img, markerX - 10, markerY + 10);
+		double[] hsv8 = PixelOperations.getPixelHSV(img, (int)circle.getX()-sampleRange,(int)circle.getY()+sampleRange);
 		colors.add(new HSVColor(hsv8[0], hsv8[1], hsv8[2]));
 		
-		double[] hsv9 = PixelOperations.getPixelHSV(img, markerX + 10, markerY + 10);
+		double[] hsv9 = PixelOperations.getPixelHSV(img, (int)circle.getX()+sampleRange,(int)circle.getY()+sampleRange);
 		colors.add(new HSVColor(hsv9[0], hsv9[1], hsv9[2]));
 		
 		double hue = 0;

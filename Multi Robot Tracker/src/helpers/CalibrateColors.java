@@ -1,10 +1,15 @@
 package helpers;
 
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
 import static com.googlecode.javacv.cpp.opencv_core.cvNot;
+import static com.googlecode.javacv.cpp.opencv_core.cvRect;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvResetImageROI;
+import static com.googlecode.javacv.cpp.opencv_core.cvSetImageROI;
+import static com.googlecode.javacv.cpp.opencv_core.cvSize;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
@@ -43,6 +48,7 @@ import server.utils.PixelOperations;
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint3D32f;
+import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_highgui;
@@ -119,20 +125,28 @@ public class CalibrateColors extends Thread {
 	private void calibration() {
 		threadsDone = 0;
 		threadsRunning = 0;
+		
+		CvRect roi = cvRect(55, 95, 1150, 730);
+		
+		cvSetImageROI(image, roi);
+		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
+		cvCopy(image, croppedImage);
+		cvResetImageROI(image);
+		
 		IplImage imageGray = null;
 
-		imageGray = IplImage.create(cvGetSize(image), 8, 1);
+		imageGray = IplImage.create(cvGetSize(croppedImage), 8, 1);
 
-		cvCvtColor(image, imageGray, CV_RGB2GRAY);
+		cvCvtColor(croppedImage, imageGray, CV_RGB2GRAY);
 
 		CvMemStorage storage = cvCreateMemStorage(0);
 
 		cvThreshold(imageGray, imageGray, 20, 255, CV_THRESH_BINARY); // 100-255
 		cvNot(imageGray, imageGray);
-		showImage(image);
+		showImage(croppedImage);
 
-		cvDilate(imageGray, imageGray, null, 10);
-		cvErode(imageGray, imageGray, null, 10);
+		cvDilate(imageGray, imageGray, null, 15);
+		cvErode(imageGray, imageGray, null, 15);
 
 		cvCanny(imageGray, imageGray, 100, 100, 3);// 100 100 3
 
@@ -176,7 +190,7 @@ public class CalibrateColors extends Thread {
 					CircleMarker m = t.getMarker();
 					double dist = circle.calculateDistance(m);
 					if(dist <= Video.markerRadius){
-						t.setParameters(image, circle);
+						t.setParameters(croppedImage, circle);
 						threadsRunning++;
 						nullMarkerThread = null;
 						break;
@@ -188,7 +202,7 @@ public class CalibrateColors extends Thread {
 			}
 			
 			if(nullMarkers > 0 && nullMarkerThread != null){
-				nullMarkerThread.setParameters(image, circle);
+				nullMarkerThread.setParameters(croppedImage, circle);
 				threadsRunning++;
 			}
 				
@@ -210,6 +224,7 @@ public class CalibrateColors extends Thread {
 		
 		cvReleaseMemStorage(circles.storage());
 		imageGray.release();
+		croppedImage.release();
 	}
 
 	private void showResults() {
