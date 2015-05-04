@@ -208,9 +208,9 @@ public class Video extends Thread{
 		cvNot(imageGray, imageGray);
 //		showImage(imageGray);
 		
-	    cvDilate(imageGray, imageGray, null, 10);
+	    cvDilate(imageGray, imageGray, null, 5);
 //	    showImage(imageGray);
-	    cvErode(imageGray, imageGray, null, 10);
+	    cvErode(imageGray, imageGray, null, 5);
 //	    showImage(imageGray);
 	    
 //		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
@@ -553,14 +553,14 @@ public class Video extends Thread{
 
 	public void drawpoint(){
 		//Top
-		CvPoint t1 = cvPoint(86,120);
-		CvPoint t2 = cvPoint(243,125);
-		CvPoint t3 = cvPoint(400,131);
-		CvPoint t4 = cvPoint(557,137);
-		CvPoint t5 = cvPoint(713,140);
-		CvPoint t6 = cvPoint(868,144);
-		CvPoint t7 = cvPoint(1027,148);
-		CvPoint t8 = cvPoint(1183,150);
+		CvPoint t1 = cvPoint(80,120);
+		CvPoint t2 = cvPoint(238,125);
+		CvPoint t3 = cvPoint(395,130);
+		CvPoint t4 = cvPoint(553,135);
+		CvPoint t5 = cvPoint(710,138);
+		CvPoint t6 = cvPoint(867,145);
+		CvPoint t7 = cvPoint(1025,148);
+		CvPoint t8 = cvPoint(1180,153);
 
 		cvLine(image, t1, t1, CvScalar.RED, 5, CV_AA, 0);
 		cvLine(image, t2, t2, CvScalar.RED, 5, CV_AA, 0);
@@ -572,11 +572,11 @@ public class Video extends Thread{
 		cvLine(image, t8, t8, CvScalar.RED, 5, CV_AA, 0);
 		
 		//Right
-		CvPoint r1 = cvPoint(1170,778);
-		CvPoint r2 = cvPoint(1172,621);
-		CvPoint r3 = cvPoint(1173,464);
-		CvPoint r4 = cvPoint(1180,308);
-		CvPoint r5 = cvPoint(1183,150);
+		CvPoint r1 = cvPoint(1163,778);
+		CvPoint r2 = cvPoint(1168,615);
+		CvPoint r3 = cvPoint(1170,465);
+		CvPoint r4 = cvPoint(1177,308);
+		CvPoint r5 = cvPoint(1180,153);
 		
 		cvLine(image, r1, r1, CvScalar.RED, 5, CV_AA, 0);
 		cvLine(image, r2, r2, CvScalar.RED, 5, CV_AA, 0);
@@ -585,14 +585,14 @@ public class Video extends Thread{
 		cvLine(image, r5, r5, CvScalar.RED, 5, CV_AA, 0);
 				
 		//Bottom
-		CvPoint b1 = cvPoint(65,745);
-		CvPoint b2 = cvPoint(227,752);
+		CvPoint b1 = cvPoint(68,749);
+		CvPoint b2 = cvPoint(222,752);
 		CvPoint b3 = cvPoint(382,757);
-		CvPoint b4 = cvPoint(540,760);
-		CvPoint b5 = cvPoint(697,767);
+		CvPoint b4 = cvPoint(535,765);
+		CvPoint b5 = cvPoint(692,769);
 		CvPoint b6 = cvPoint(855, 772);
-		CvPoint b7 = cvPoint(1012,775);
-		CvPoint b8 = cvPoint(1183,150);
+		CvPoint b7 = cvPoint(1006,775);
+		CvPoint b8 = cvPoint(1163,778);
 		
 		cvLine(image, b1, b1, CvScalar.RED, 5, CV_AA, 0);
 		cvLine(image, b2, b2, CvScalar.RED, 5, CV_AA, 0);
@@ -604,11 +604,11 @@ public class Video extends Thread{
 		cvLine(image, b8, b8, CvScalar.RED, 5, CV_AA, 0);
 		
 		//Left
-		CvPoint l1 = cvPoint(86,120);
-		CvPoint l2 = cvPoint(81,272);
-		CvPoint l3 = cvPoint(76,429);
-		CvPoint l4 = cvPoint(70,588);
-		CvPoint l5 = cvPoint(65,745);
+		CvPoint l1 = cvPoint(80,120);
+		CvPoint l2 = cvPoint(72,275);
+		CvPoint l3 = cvPoint(65,435);
+		CvPoint l4 = cvPoint(65,590);
+		CvPoint l5 = cvPoint(68,749);
 		
 		cvLine(image, l1, l1, CvScalar.RED, 5, CV_AA, 0);
 		cvLine(image, l2, l2, CvScalar.RED, 5, CV_AA, 0);

@@ -1,5 +1,12 @@
 package server.utils;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.cvLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
+
+import com.googlecode.javacv.cpp.opencv_core.CvPoint;
+import com.googlecode.javacv.cpp.opencv_core.CvScalar;
+
 import commoninterface.mathutils.Vector2d;
 
 /**
@@ -10,41 +17,41 @@ import commoninterface.mathutils.Vector2d;
  *
  */
 public class Translator {
-	
+
 	public static GroundPoint[][] points = {
 			{//Top
-				new GroundPoint(86,120,0,120),
-				new GroundPoint(243,125,30,120),
-				new GroundPoint(400,131,60,120),
-				new GroundPoint(557,137,90,120),
-				new GroundPoint(713,140,120,120),
-				new GroundPoint(868,144,150,120),
-				new GroundPoint(1027,148,180,120),
-				new GroundPoint(1183,150,210,120)
+				new GroundPoint(80,120,0,120),
+				new GroundPoint(238,125,30,120),
+				new GroundPoint(395,130,60,120),
+				new GroundPoint(553,135,90,120),
+				new GroundPoint(710,138,120,120),
+				new GroundPoint(867,145,150,120),
+				new GroundPoint(1025,148,180,120),
+				new GroundPoint(1180,153,210,120)
 			},
 			{//Right
-				new GroundPoint(1170,778,210,0),
-				new GroundPoint(1172,621,210,30),
-				new GroundPoint(1173,464,210,60),
-				new GroundPoint(1180,308,210,90),
-				new GroundPoint(1183,150,210,120)
+				new GroundPoint(1163,778,210,0),
+				new GroundPoint(1168,615,210,30),
+				new GroundPoint(1170,465,210,60),
+				new GroundPoint(1177,308,210,90),
+				new GroundPoint(1180,153,210,120)
 			},
 			{//Bottom
-				new GroundPoint(65,745,0,0),
-				new GroundPoint(227,752,30,0),
+				new GroundPoint(68,749,0,0),
+				new GroundPoint(222,752,30,0),
 				new GroundPoint(382,757,60,0),
-				new GroundPoint(540,760,90,0),
-				new GroundPoint(697,767,120,0),
+				new GroundPoint(535,765,90,0),
+				new GroundPoint(692,769,120,0),
 				new GroundPoint(855, 772,150,0),
-				new GroundPoint(1012,775,180,0),
-				new GroundPoint(1183,150,210,0)
+				new GroundPoint(1006,775,180,0),
+				new GroundPoint(1163,778,210,0)
 			},
 			{//Left
-				new GroundPoint(86,120,0,120),
-				new GroundPoint(81,272,0,90),
-				new GroundPoint(76,429,0,60),
-				new GroundPoint(70,588,0,30),
-				new GroundPoint(65,745,0,0)
+				new GroundPoint(80,120,0,120),
+				new GroundPoint(72,275,0,90),
+				new GroundPoint(65,435,0,60),
+				new GroundPoint(65,590,0,30),
+				new GroundPoint(68,749,0,0)
 			}
 	};
 	
