@@ -123,12 +123,10 @@ public class CalibrationThread extends Thread {
 		int size = 0;
 		
 		for (HSVColor c : colors) {
-			if(c.getBrightness() > 20){
-				hue += c.getHue();
-				saturation += c.getSaturation();
-				brightness += c.getBrightness();
-				size++;
-			}
+			hue += c.getHue();
+			saturation += c.getSaturation();
+			brightness += c.getBrightness();
+			size++;
 		}
 		
 		hue /= size;

@@ -1,24 +1,7 @@
 package helpers;
 
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
-import static com.googlecode.javacv.cpp.opencv_core.cvNot;
-import static com.googlecode.javacv.cpp.opencv_core.cvRect;
-import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvResetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSize;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvDilate;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvErode;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -126,28 +109,25 @@ public class CalibrateColors extends Thread {
 		threadsDone = 0;
 		threadsRunning = 0;
 		
-		CvRect roi = cvRect(55, 95, 1150, 730);
+		CvRect roi = cvRect(40, 85, 1160, 730);
 		
 		cvSetImageROI(image, roi);
 		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
 		cvCopy(image, croppedImage);
 		cvResetImageROI(image);
 		
-		IplImage imageGray = null;
-
-		imageGray = IplImage.create(cvGetSize(croppedImage), 8, 1);
+		showImage(croppedImage);
+		
+		IplImage imageGray = IplImage.create(cvGetSize(croppedImage), 8, 1);
 
 		cvCvtColor(croppedImage, imageGray, CV_RGB2GRAY);
 
 		CvMemStorage storage = cvCreateMemStorage(0);
 
-		cvThreshold(imageGray, imageGray, 20, 255, CV_THRESH_BINARY); // 100-255
-		cvNot(imageGray, imageGray);
-		showImage(croppedImage);
+		cvThreshold(imageGray, imageGray, 115, 255, CV_THRESH_BINARY);
 
-		cvDilate(imageGray, imageGray, null, 15);
-		cvErode(imageGray, imageGray, null, 15);
-
+		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
+		
 		cvCanny(imageGray, imageGray, 100, 100, 3);// 100 100 3
 
 		// Find circles
@@ -164,10 +144,10 @@ public class CalibrateColors extends Thread {
 		);
 
 		int numberOfCircles = circles.total();
+		if(numberOfCircles == 0)
+			System.out.println("Not detecting any circle");
 		
 		if(firstTime == true){
-			System.out.println("Number of circles: " + numberOfCircles);
-			
 			for (int i = 0; i < numberOfCircles; i++) {
 				CalibrationThread t = new CalibrationThread(this);
 				t.start();

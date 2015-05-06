@@ -24,7 +24,7 @@ public class ServerEnvironment {
 	
 	private int[][] preyLocation = {{15,85,20,105},{140,200,20,105}};
 	//Adicionar os IP's dos robots por ordem de ID
-	private String[] addresses = {"192.168.3.17"};
+	private String[] addresses = {"192.168.3.17","192.168.3.18"};
 	
 	private int numberOfPreys = 1;
 	private double consumingDistance = 0.15;

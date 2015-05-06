@@ -1,27 +1,7 @@
 package server;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
-import static com.googlecode.javacv.cpp.opencv_core.cvLine;
-import static com.googlecode.javacv.cpp.opencv_core.cvNot;
-import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
-import static com.googlecode.javacv.cpp.opencv_core.cvRect;
-import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvResetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSize;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvDilate;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvErode;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import helpers.MeasureLatencyServer;
 
 import java.awt.Color;
@@ -167,7 +147,7 @@ public class Video extends Thread{
 				break;
 			} else {
 //				drawpoint();
-				countFramesPerSecond();
+//				countFramesPerSecond();
 				processImage();
 			}
 		}	
@@ -183,37 +163,35 @@ public class Video extends Thread{
 		
 //		showImage(image);
 		
-		CvRect roi = cvRect(55, 95, 1150, 730);
+		CvRect roi = cvRect(40, 85, 1160, 730);
 		
 		cvSetImageROI(image, roi);
 		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
 		cvCopy(image, croppedImage);
 		cvResetImageROI(image);
 		
-		IplImage imageGray = null;
-		
 //		if(successfulIntersection) {
 //			roi = cvRect((int)center.x()-widthRoi/2, (int)center.y()-widthRoi/2, widthRoi, widthRoi);
 //			cvSetImageROI(image,roi);
 //		}
 		
-		imageGray = IplImage.create(cvGetSize(croppedImage), 8, 1);
+		IplImage imageGray = IplImage.create(cvGetSize(croppedImage), 8, 1);
 		
 		cvCvtColor(croppedImage, imageGray, CV_RGB2GRAY);
 		
 		CvMemStorage storage = cvCreateMemStorage(0);
 			
-		cvThreshold(imageGray, imageGray, 20, 255, CV_THRESH_BINARY); //100-255
-//		showImage(imageGray);
-		cvNot(imageGray, imageGray);
+		cvThreshold(imageGray, imageGray, 115, 255, CV_THRESH_BINARY); //100-255
 //		showImage(imageGray);
 		
-	    cvDilate(imageGray, imageGray, null, 5);
+//		cvNot(imageGray, imageGray);
+//		showImage(imageGray);
+//	    cvDilate(imageGray, imageGray, null, 5);
 //	    showImage(imageGray);
-	    cvErode(imageGray, imageGray, null, 5);
+//	    cvErode(imageGray, imageGray, null, 5);
 //	    showImage(imageGray);
 	    
-//		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
+		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
 	    
 		cvCanny(imageGray, imageGray, 100, 100, 3);//100 100 3
 //		showImage(imageGray);
@@ -254,7 +232,7 @@ public class Video extends Thread{
 			double[] hsv = getHSVMarkerColor(croppedImage, (int)circle.getX(), (int)circle.getY());
 			double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
 			Integer robotID = getColorId(hsv[0], hsv[1],Math.min(hsv[2] + 100 - corner[2],100));
-
+			System.out.println("Robot ID: " + robotID);
 			if(robotID != null){
 				int times = colorAppearances.get(robotID);
 				if(times < 30){
@@ -341,9 +319,12 @@ public class Video extends Thread{
 				}
 			}
 		}
-				
+		
+		boolean successfulIntersection = false;
+		
 		for (ComputateCrossMarker t : processingThreads.values()) {
 			//Check when not get the intersection
+			successfulIntersection = t.isSuccessfulIntersection();
 			
 			cvLine(croppedImage, t.getEstTail(), t.getEstIntersection(), CvScalar.YELLOW, 3, CV_AA, 0);
 	        cvLine(croppedImage, t.getEstCenter(), t.getEstCenter(), CvScalar.RED, 3, CV_AA, 0);
@@ -364,8 +345,10 @@ public class Video extends Thread{
 			t.setLabelText(t.getColor(), robotID, r.getPosition(), t.robotOrientation, t.isSuccessfulIntersection());
 		}
 
-		//Fazer set as alterações do ambiente
-		environment.updateRobotsLocation(robots);
+		if(successfulIntersection){
+			//Set the environment changes and broadcast the information
+			environment.updateRobotsLocation(robots);
+		}
 		
 		if(latencyServer != null)
 			measureLatency();
@@ -430,12 +413,10 @@ public class Video extends Thread{
 		int size = 0;
 		
 		for (HSVColor c : colors) {
-			if(c.getBrightness() > 20){
-				hue += c.getHue();
-				saturation += c.getSaturation();
-				brightness += c.getBrightness();
-				size++;
-			}
+			hue += c.getHue();
+			saturation += c.getSaturation();
+			brightness += c.getBrightness();
+			size++;
 		}
 		
 		hue /= size;

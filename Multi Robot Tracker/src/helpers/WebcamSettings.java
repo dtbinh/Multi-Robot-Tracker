@@ -82,16 +82,18 @@ public class WebcamSettings extends Thread {
 		
 		CvMemStorage storage = cvCreateMemStorage(0);
 
-		cvThreshold(imageGray, imageGray, 20, 255, CV_THRESH_BINARY); // 100-255 - 20-255
+		cvThreshold(imageGray, imageGray, 115, 255, CV_THRESH_BINARY); // 100-255 - 20-255
 //		canvas.showImage(imageGray);
 		
-		cvNot(imageGray, imageGray);
+//		cvNot(imageGray, imageGray);
 //		canvas.showImage(imageGray);
 		
-		cvDilate(imageGray, imageGray, null, 5);
+//		cvDilate(imageGray, imageGray, null, 5);
 //		canvas.showImage(imageGray);
 		
-		cvErode(imageGray, imageGray, null, 5);
+//		cvErode(imageGray, imageGray, null, 5);
+		
+		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
 		canvas.showImage(imageGray);
 		
 		cvCanny(imageGray, imageGray, 100, 100, 3);// 100 100 3
@@ -111,8 +113,21 @@ public class WebcamSettings extends Thread {
 		);
 
 		int numberOfCircles = circles.total();		
-		System.out.println(numberOfCircles);
+		if(numberOfCircles == 0)
+			System.out.println("Not detecting any circle");
 		
+		getMarkerColor(croppedImage, circles, numberOfCircles);
+		
+		System.out.println(" ----------- ");
+		
+		cvReleaseMemStorage(circles.storage());
+		
+		imageGray.release();
+		croppedImage.release();
+	}
+
+	private void getMarkerColor(IplImage croppedImage, CvSeq circles,
+			int numberOfCircles) {
 		System.out.println("Colors Obtained: ");
 		for (int i = 0; i < numberOfCircles; i++) {
 			ArrayList<HSVColor> colors = new ArrayList<HSVColor>();
@@ -165,12 +180,10 @@ public class WebcamSettings extends Thread {
 			int size = 0;
 			
 			for (HSVColor c : colors) {
-				if(c.getBrightness() > 20){
-					hue += c.getHue();
-					saturation += c.getSaturation();
-					brightness += c.getBrightness();
-					size++;
-				}
+				hue += c.getHue();
+				saturation += c.getSaturation();
+				brightness += c.getBrightness();
+				size++;
 			}
 			
 			hue /= size;
@@ -181,13 +194,6 @@ public class WebcamSettings extends Thread {
 			
 //			canvas.showImage(croppedImage);
 		}
-		
-		System.out.println(" ----------- ");
-		
-		cvReleaseMemStorage(circles.storage());
-		
-		imageGray.release();
-		croppedImage.release();
 	}
 	
 	@SuppressWarnings("unused")

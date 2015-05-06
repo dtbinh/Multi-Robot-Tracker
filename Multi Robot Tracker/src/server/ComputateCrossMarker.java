@@ -1,27 +1,7 @@
 package server;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.CV_RGB;
-import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvFastArctan;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
-import static com.googlecode.javacv.cpp.opencv_core.cvLine;
-import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
-import static com.googlecode.javacv.cpp.opencv_core.cvRect;
-import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvResetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSetImageROI;
-import static com.googlecode.javacv.cpp.opencv_core.cvSize;
-import static com.googlecode.javacv.cpp.opencv_core.cvZero;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_BGR2GRAY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_PROBABILISTIC;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvErode;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughLines2;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -115,6 +95,7 @@ public class ComputateCrossMarker extends Thread {
 	}
 
 	private void processMarker() throws InterruptedException {
+		System.out.println("Let's Go!");
 		while(!working){
 			synchronized (this) {
 //				System.out.println(Thread.currentThread().getName() + " is waiting ...");
@@ -167,26 +148,27 @@ public class ComputateCrossMarker extends Thread {
 		    );
 		    
 		    cvZero(maskedImage);
-		    
+
 		    // extract subimage
-//			cvNot(tempImage,tempImage);
+			cvNot(tempImage,tempImage);
 		    cvCopy(tempImage, maskedImage, roiImg);
 //		    showImage(maskedImage);
-		    
+
 			IplImage thresholdedCross = IplImage.create(maskedImage.cvSize(),8,1);
 			
 			cvCvtColor(maskedImage, thresholdedCross, CV_BGR2GRAY);
 			
 			int[] rgb = PixelOperations.getPixelRGB(image, (int)markerCircle.getX(), (int)markerCircle.getY());
+			System.out.println("R: " + rgb[0] +" G: "+ rgb[1] + " B: " + rgb[2]);
 			int avgRGB = (int)((rgb[0] + rgb[1] + rgb[2])/3/2);
+			
 			//Extract cross
-			cvThreshold(thresholdedCross, thresholdedCross, avgRGB, 255, CV_THRESH_BINARY);
+			cvThreshold(thresholdedCross, thresholdedCross, 120, 255, CV_THRESH_BINARY);
 //			cvSmooth(thresholdedCross, thresholdedCross, CV_GAUSSIAN, 3);
-//			cvDilate(thresholdedCross,thresholdedCross,null,1);
 			
 //			showImage(thresholdedCross);
 			
-			int erodeValue = 2;
+			int erodeValue = 4;
 			boolean success = false;
 			IplImage thresholdedCrossCopy = IplImage.create(thresholdedCross.cvSize(),8,1);
 			
