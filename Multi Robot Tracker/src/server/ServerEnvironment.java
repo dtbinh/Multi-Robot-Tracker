@@ -15,6 +15,7 @@ import tracking.Robot;
 
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
+
 import commoninterface.mathutils.Vector2d;
 import commoninterface.network.broadcast.VirtualPositionBroadcastMessage;
 import commoninterface.network.broadcast.VirtualPositionBroadcastMessage.VirtualPositionType;
@@ -34,14 +35,39 @@ public class ServerEnvironment {
 	public LinkedList<GroundPoint> objectsCoordinates = new LinkedList<GroundPoint>();
 	
 	private LocationServer locationServer;
-
+	private LinkedList<VirtualPositionBroadcastMessage> virtualPositionMessages;
+	
 	private int preysCaught = 0;
+	
+	private Thread senderThread;
+	private boolean threadRunning = false;
 	
 	public ServerEnvironment() {
 		locationServer = new LocationServer();
+		virtualPositionMessages = new LinkedList<VirtualPositionBroadcastMessage>();
 		
 		for (int i = 0; i < numberOfPreys; i++)
 			addObjectCoordinates(newPreyPosition());
+
+		senderThread = new Thread(){
+			public void run() {
+				while(true){
+					synchronized (virtualPositionMessages) {
+						for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
+							locationServer.sendMessage(m.encode());
+							System.out.println("Message send!");
+						}
+					}
+					
+					try {
+						sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+		};
+		
 	}
 	
 	private Vector2d newPreyPosition() {
@@ -86,43 +112,46 @@ public class ServerEnvironment {
 	}	
 
 	public void updateRobotsLocation(HashMap<Integer, Robot> robots){
-		LinkedList<VirtualPositionBroadcastMessage> virtualPositionMessages = new LinkedList<VirtualPositionBroadcastMessage>();
-		
-		for (Integer id : robots.keySet()) {
-			if(addresses[id] != null){
-				String networkAddress = addresses[id];
-				Robot r = robots.get(id);
-				
-				VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.ROBOT, networkAddress, r.x, r.y, r.orientation);
-				virtualPositionMessages.add(m);
-				
-				Iterator<Vector2d> i = objectsPositions.iterator();
-				
-				while(i.hasNext()){
-					Vector2d prey = i.next();
-					if(r.getPosition().distanceTo(prey)  < consumingDistance){
-						objectsPositions.remove(prey);
-						removeObject(prey);
-						addObjectCoordinates(newPreyPosition());
-						preysCaught++;
+		synchronized (virtualPositionMessages) {
+			virtualPositionMessages.clear();
+			
+			for (Integer id : robots.keySet()) {
+				if(addresses[id] != null){
+					String networkAddress = addresses[id];
+					Robot r = robots.get(id);
+					
+					VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.ROBOT, networkAddress, r.x, r.y, r.orientation);
+					virtualPositionMessages.add(m);
+					
+					Iterator<Vector2d> i = objectsPositions.iterator();
+					
+					while(i.hasNext()){
+						Vector2d prey = i.next();
+						
+						if(r.getPosition().distanceTo(prey)  < consumingDistance){
+							objectsPositions.remove(prey);
+							removeObject(prey);
+							addObjectCoordinates(newPreyPosition());
+							preysCaught++;
+						}
 					}
 				}
 			}
-		}
-		
-		int preyNumber = 0;
-		for (Vector2d prey : objectsPositions) {
-			String preyName = "prey_"+preyNumber;
 			
-			VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.PREY, preyName, prey.x, prey.y, 0);
-			virtualPositionMessages.add(m);
+			int preyNumber = 0;
+			for (Vector2d prey : objectsPositions) {
+				String preyName = "prey_"+preyNumber;
+				
+				VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.PREY, preyName, prey.x, prey.y, 0);
+				virtualPositionMessages.add(m);
+			}
 		}
 		
-		for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
-			locationServer.sendMessage(m.encode());
-			System.out.println("Message send!");
+		if(!threadRunning){
+			threadRunning = true;
+			senderThread.start();
+			System.out.println("Sender Thread Started!");
 		}
-		
 	}
 	
 	public int getPreysCaught() {
