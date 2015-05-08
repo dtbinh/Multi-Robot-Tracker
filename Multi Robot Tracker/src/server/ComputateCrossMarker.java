@@ -375,7 +375,7 @@ public class ComputateCrossMarker extends Thread {
 	public void setLabelText(Color color, Integer robotID, Vector2d position, double orientation, boolean detectingIntersection){
 		colorTextfield.setBackground(color);
 		DecimalFormat df = new DecimalFormat("#.0");
-		informationLabel.setText("Robot ID: " + robotID + " - Position = (" + df.format(position.x) + ", " + df.format(position.y) + ") - Orientation: " + df.format(orientation) + " - Detecting: " + detectingIntersection);
+		informationLabel.setText("Robot ID: " + robotID + " - Position = (" + df.format(position.x/100) + ", " + df.format(position.y/100) + ") - Orientation: " + df.format(orientation) + " - Detecting: " + detectingIntersection);
 	}
 	
 }
