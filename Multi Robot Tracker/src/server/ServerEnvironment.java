@@ -88,7 +88,8 @@ public class ServerEnvironment {
 	}
 	
 	public void addObjectCoordinates(Vector2d p) {
-		objectsPositions.add(p);
+		Vector2d preyPosition = new Vector2d(p.x/100, p.y/100);
+		objectsPositions.add(preyPosition);
 		Vector2d pixelPos = Translator.getPixelPosition(p);
 		objectsCoordinates.add(new GroundPoint(pixelPos.x,pixelPos.y,p.x,p.y));
 	}
