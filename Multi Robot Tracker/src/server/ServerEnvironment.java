@@ -9,8 +9,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
-import server.utils.GroundPoint;
+import server.utils.Prey;
 import server.utils.Translator;
+import tracking.GroundPoint;
 import tracking.Robot;
 
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -31,8 +32,7 @@ public class ServerEnvironment {
 	private double consumingDistance = 0.15;
 	private double preyPercentage = 1;
 	
-	public LinkedList<Vector2d> objectsPositions = new LinkedList<Vector2d>();
-	public LinkedList<GroundPoint> objectsCoordinates = new LinkedList<GroundPoint>();
+	public LinkedList<Prey> preys = new LinkedList<Prey>();
 	
 	private LocationServer locationServer;
 	private LinkedList<VirtualPositionBroadcastMessage> virtualPositionMessages;
@@ -41,6 +41,8 @@ public class ServerEnvironment {
 	
 	private Thread senderThread;
 	private boolean threadRunning = false;
+	
+	private Vector2d r;
 	
 	public ServerEnvironment() {
 		locationServer = new LocationServer();
@@ -55,7 +57,7 @@ public class ServerEnvironment {
 					synchronized (virtualPositionMessages) {
 						for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
 							locationServer.sendMessage(m.encode());
-							System.out.println("Message send!");
+//							System.out.println("Message send!");
 						}
 					}
 					
@@ -88,62 +90,73 @@ public class ServerEnvironment {
 	}
 	
 	public void addObjectCoordinates(Vector2d p) {
-		Vector2d preyPosition = new Vector2d(p.x/100, p.y/100);
-		objectsPositions.add(preyPosition);
+		Vector2d preyPosition = new Vector2d(p.x/100.0, p.y/100.0);
 		Vector2d pixelPos = Translator.getPixelPosition(p);
-		objectsCoordinates.add(new GroundPoint(pixelPos.x,pixelPos.y,p.x,p.y));
+		GroundPoint gp = new GroundPoint((int)pixelPos.x,(int)pixelPos.y,(int)p.x,(int)p.y);
+		
+		Prey prey = new Prey();
+		prey.gp = gp;
+		prey.pp = preyPosition;
+		preys.add(prey);
+		
 	}
 	
 	public void drawObjects(IplImage img) {
-		for(GroundPoint p : objectsCoordinates) {
-			cvLine(img, cvPoint((int)p.getImageX(), (int)p.getImageY()), cvPoint((int)p.getImageX(), (int)p.getImageY()), CvScalar.RED, WIDTH, CV_AA, 0);
+		for(Prey prey : preys) {
+			GroundPoint p = prey.gp;
+			cvLine(img, cvPoint(p.imageX, p.imageY), cvPoint(p.imageX, p.imageY), CvScalar.RED, WIDTH, CV_AA, 0);
 		}
+		if(r != null) {
+			Vector2d robotPos = new Vector2d(r);
+			robotPos.x*=100;
+			robotPos.y*=100;
+			Vector2d pixelPos = Translator.getPixelPosition(robotPos);
+			cvLine(img, cvPoint((int)pixelPos.x, (int)pixelPos.y), cvPoint((int)pixelPos.x, (int)pixelPos.y), CvScalar.RED, WIDTH, CV_AA, 0);
+		}
+		
 	}
 	
-	public void removeObject(Vector2d object) {	
-		for(int i = 0 ; i < objectsCoordinates.size() ; i++) {
-			if(object.x == objectsCoordinates.get(i).getGroundX() && object.y == objectsCoordinates.get(i).getGroundY()) {
-				objectsCoordinates.remove(i);
-			}
-		}
-	}
-
 	public void removeAllObjects() {
-		objectsCoordinates.clear();
+		preys.clear();
 	}	
 
 	public void updateRobotsLocation(HashMap<Integer, Robot> robots){
 		synchronized (virtualPositionMessages) {
 			virtualPositionMessages.clear();
 			
+			int currentPreysCaught = preysCaught;
+			
 			for (Integer id : robots.keySet()) {
 				if(addresses[id] != null){
 					String networkAddress = addresses[id];
 					Robot r = robots.get(id);
 					
+					this.r = r.getPosition();
+					
 					VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.ROBOT, networkAddress, r.x, r.y, r.orientation);
 					virtualPositionMessages.add(m);
 					
-					Iterator<Vector2d> i = objectsPositions.iterator();
+					Iterator<Prey> i = preys.iterator();
 					
 					while(i.hasNext()){
-						Vector2d prey = i.next();
-						
-						if(r.getPosition().distanceTo(prey)  < consumingDistance){
-							objectsPositions.remove(prey);
-							removeObject(prey);
-							addObjectCoordinates(newPreyPosition());
+						Prey prey = i.next();
+//						System.out.println(r.getPosition().distanceTo(prey.pp));
+						if(r.getPosition().distanceTo(prey.pp)  < consumingDistance){
+							i.remove();
 							preysCaught++;
 						}
 					}
 				}
 			}
 			
+			if(currentPreysCaught != preysCaught)
+				addObjectCoordinates(newPreyPosition());
+			
 			int preyNumber = 0;
-			for (Vector2d prey : objectsPositions) {
+			for (Prey prey : preys) {
 				String preyName = "prey_"+preyNumber;
 				
-				VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.PREY, preyName, prey.x, prey.y, 0);
+				VirtualPositionBroadcastMessage m = new VirtualPositionBroadcastMessage(VirtualPositionType.PREY, preyName, prey.pp.x, prey.pp.y, 0);
 				virtualPositionMessages.add(m);
 			}
 		}
@@ -151,7 +164,7 @@ public class ServerEnvironment {
 		if(!threadRunning){
 			threadRunning = true;
 			senderThread.start();
-			System.out.println("Sender Thread Started!");
+//			System.out.println("Sender Thread Started!");
 		}
 	}
 	

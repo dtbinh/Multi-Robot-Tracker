@@ -163,12 +163,18 @@ public class Video extends Thread{
 		
 //		showImage(image);
 		
-		CvRect roi = cvRect(40, 85, 1160, 730);
 		
-		cvSetImageROI(image, roi);
-		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
+		//TODO -- look into this
+//		CvRect roi = cvRect(40, 85, 1160, 730);
+//		
+//		cvSetImageROI(image, roi);
+//		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
+//		cvCopy(image, croppedImage);
+//		cvResetImageROI(image);
+		
+		IplImage croppedImage = IplImage.create(cvSize(image.width(), image.height()), 8, 3);
 		cvCopy(image, croppedImage);
-		cvResetImageROI(image);
+		
 		
 //		if(successfulIntersection) {
 //			roi = cvRect((int)center.x()-widthRoi/2, (int)center.y()-widthRoi/2, widthRoi, widthRoi);
@@ -213,7 +219,7 @@ public class Video extends Thread{
 //			cvResetImageROI(image);
 		
 		int numberOfCircles = circles.total();
-		System.out.println(numberOfCircles);
+//		System.out.println(numberOfCircles);
 		
 		LinkedList<Integer> colorsList = new LinkedList<Integer>();
 		for (int i = 0; i < colorsIntervals.length; i++) 
@@ -232,7 +238,7 @@ public class Video extends Thread{
 			double[] hsv = getHSVMarkerColor(croppedImage, (int)circle.getX(), (int)circle.getY());
 			double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
 			Integer robotID = getColorId(hsv[0], hsv[1],Math.min(hsv[2] + 100 - corner[2],100));
-			System.out.println("Robot ID: " + robotID);
+//			System.out.println("Robot ID: " + robotID);
 			if(robotID != null){
 				int times = colorAppearances.get(robotID);
 				if(times < 30){
@@ -272,19 +278,19 @@ public class Video extends Thread{
 			if(colorAppearances.get(robotID) <= 0){
 					if(oldCirclesMap.containsKey(robotID)){
 						oldCirclesMap.remove(robotID);
-						System.out.println("Color ID" + robotID + " removed from the old circles hash map!");
+//						System.out.println("Color ID" + robotID + " removed from the old circles hash map!");
 					}
 					
 					if(processingThreads.containsKey(robotID)){
 						ComputateCrossMarker ccm = processingThreads.get(robotID);
 						ccm.interrupt();
 						processingThreads.remove(robotID);
-						System.out.println(ccm.getName() + " interrupted and color ID " + robotID + "removed from the processing threads hash!");
+//						System.out.println(ccm.getName() + " interrupted and color ID " + robotID + "removed from the processing threads hash!");
 					}
 					
 					if(robotIdsColor.containsKey(robotID)){
 						robotIdsColor.remove(robotID);
-						System.out.println("Color ID " + robotID + "removed from the colors hash!");
+//						System.out.println("Color ID " + robotID + "removed from the colors hash!");
 					}
 			}
 		}

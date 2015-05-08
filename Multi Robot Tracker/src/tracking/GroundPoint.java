@@ -10,10 +10,10 @@ package tracking;
  */
 public class GroundPoint {
 	
-	int imageX = 0;
-	int imageY = 0;
-	int groundX = 0;
-	int groundY = 0;
+	public int imageX = 0;
+	public int imageY = 0;
+	public int groundX = 0;
+	public int groundY = 0;
 	
 	public GroundPoint(int ix,int iy,int gx,int gy) {
 		imageX = ix;

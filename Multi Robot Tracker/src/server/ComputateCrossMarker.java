@@ -57,6 +57,7 @@ public class ComputateCrossMarker extends Thread {
 	private Video video;
 	private boolean working = false;
 	private String threadName;
+	private DecimalFormat df = new DecimalFormat("#.00");
 	
 	public ComputateCrossMarker(Video video, String threadName) {
 		this.video = video;
@@ -95,7 +96,7 @@ public class ComputateCrossMarker extends Thread {
 	}
 
 	private void processMarker() throws InterruptedException {
-		System.out.println("Let's Go!");
+//		System.out.println("Let's Go!");
 		while(!working){
 			synchronized (this) {
 //				System.out.println(Thread.currentThread().getName() + " is waiting ...");
@@ -159,7 +160,7 @@ public class ComputateCrossMarker extends Thread {
 			cvCvtColor(maskedImage, thresholdedCross, CV_BGR2GRAY);
 			
 			int[] rgb = PixelOperations.getPixelRGB(image, (int)markerCircle.getX(), (int)markerCircle.getY());
-			System.out.println("R: " + rgb[0] +" G: "+ rgb[1] + " B: " + rgb[2]);
+//			System.out.println("R: " + rgb[0] +" G: "+ rgb[1] + " B: " + rgb[2]);
 			int avgRGB = (int)((rgb[0] + rgb[1] + rgb[2])/3/2);
 			
 			//Extract cross
@@ -231,9 +232,7 @@ public class ComputateCrossMarker extends Thread {
 					        
 					        tail = cvPoint((int)(tail.x()+(x-width/2)),(int)(tail.y()+(y-width/2)));
 						    intersection = cvPoint((int)(intersection.x()+(x-width/2)),(int)(intersection.y()+(y-width/2)));
-						    
 						    CvPoint[] estimation = kalman.getEstimation(tail,intersection,center);
-					        
 						    estTail = estimation[0];
 						    estIntersection = estimation[1];
 						    estCenter = estimation[2];
@@ -261,7 +260,9 @@ public class ComputateCrossMarker extends Thread {
 		if(!successfulIntersection)
 			robotPosition = cvPoint(center.x(),center.y());
 		
-		robotOrientation = cvFastArctan(estIntersection.y()-estTail.y(),estIntersection.x()-estTail.x());
+		
+		double orientation = cvFastArctan(estIntersection.y()-estTail.y(),estIntersection.x()-estTail.x());
+		robotOrientation = (orientation-360)*-1;
 		
 		image.release();
 		video.incrementThreadsDone();
@@ -374,8 +375,7 @@ public class ComputateCrossMarker extends Thread {
 	
 	public void setLabelText(Color color, Integer robotID, Vector2d position, double orientation, boolean detectingIntersection){
 		colorTextfield.setBackground(color);
-		DecimalFormat df = new DecimalFormat("#.0");
-		informationLabel.setText("Robot ID: " + robotID + " - Position = (" + df.format(position.x/100) + ", " + df.format(position.y/100) + ") - Orientation: " + df.format(orientation) + " - Detecting: " + detectingIntersection);
+		informationLabel.setText("Robot ID: " + robotID + " - Position = (" + df.format(position.x) + ", " + df.format(position.y) + ") - Orientation: " + df.format(orientation) + " - Detecting: " + detectingIntersection);
 	}
 	
 }

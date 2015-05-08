@@ -1,12 +1,6 @@
 package server.utils;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.cvLine;
-import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
-
-import com.googlecode.javacv.cpp.opencv_core.CvPoint;
-import com.googlecode.javacv.cpp.opencv_core.CvScalar;
-
+import tracking.GroundPoint;
 import commoninterface.mathutils.Vector2d;
 
 /**
