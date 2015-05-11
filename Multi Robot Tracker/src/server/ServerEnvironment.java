@@ -24,13 +24,12 @@ import commoninterface.network.broadcast.VirtualPositionBroadcastMessage.Virtual
 public class ServerEnvironment {
 	private static int WIDTH = 10;
 	
-	private int[][] preyLocation = {{15,85,20,105},{140,200,20,105}};
+	private int[] preyLocation = {0,200,20,120};
 	//Adicionar os IP's dos robots por ordem de ID
 	private String[] addresses = {"192.168.3.17","192.168.3.18"};
 	
-	private int numberOfPreys = 1;
+	private int numberOfPreys = 2;
 	private double consumingDistance = 0.15;
-	private double preyPercentage = 1;
 	
 	public LinkedList<Prey> preys = new LinkedList<Prey>();
 	
@@ -73,15 +72,11 @@ public class ServerEnvironment {
 	}
 	
 	private Vector2d newPreyPosition() {
-		int index = 0;
-		
-		if(new Random().nextDouble() <= preyPercentage)
-			index = 1;
-		
-		int minX = preyLocation[index][0];
-		int maxX = preyLocation[index][1];
-		int minY = preyLocation[index][2];
-		int maxY = preyLocation[index][3];
+
+		int minX = preyLocation[0];
+		int maxX = preyLocation[1];
+		int minY = preyLocation[2];
+		int maxY = preyLocation[3];
 		
 		double x = (new Random()).nextDouble()*(maxX-minX)+minX;
 		double y = (new Random()).nextDouble()*(maxY-minY)+minY;
