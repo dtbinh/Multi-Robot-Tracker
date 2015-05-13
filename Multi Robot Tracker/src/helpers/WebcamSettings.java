@@ -1,17 +1,25 @@
 package helpers;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
+import static com.googlecode.javacv.cpp.opencv_core.cvLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvSize;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-
-import javax.swing.JFrame;
-import javax.swing.JTextField;
 
 import server.utils.CircleMarker;
 import server.utils.HSVColor;
@@ -21,7 +29,6 @@ import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint3D32f;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
@@ -33,18 +40,9 @@ public class WebcamSettings extends Thread {
 	private CanvasFrame canvas;
 	private IplImage image;
 		
-	JFrame window = new JFrame("Color");
-	JTextField colorA = new JTextField(3);
-	
 	public WebcamSettings() {
 		canvas = new CanvasFrame("Camera");
 		canvas.setPreferredSize(new Dimension(600, 400));
-				
-		window.getContentPane().add(colorA);
-		window.pack();
-		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.setLocationRelativeTo(null);
-		window.setVisible(true);
 	}
 	
 	@Override
@@ -66,12 +64,12 @@ public class WebcamSettings extends Thread {
 	}
 	
 	private void calibration() {
-		CvRect roi = cvRect(40, 85, 1160, 730);
+//		CvRect roi = cvRect(40, 85, 1160, 730);
 		
-		cvSetImageROI(image, roi);
-		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
+//		cvSetImageROI(image, roi);
+		IplImage croppedImage = IplImage.create(cvSize(image.width(), image.height()), 8, 3);
 		cvCopy(image, croppedImage);
-		cvResetImageROI(image);
+//		cvResetImageROI(image);
 
 //		canvas.showImage(croppedImage);
 		
@@ -94,7 +92,7 @@ public class WebcamSettings extends Thread {
 //		cvErode(imageGray, imageGray, null, 5);
 		
 		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
-		canvas.showImage(imageGray);
+//		canvas.showImage(imageGray);
 		
 		cvCanny(imageGray, imageGray, 100, 100, 3);// 100 100 3
 //		canvas.showImage(imageGray);
@@ -225,9 +223,7 @@ public class WebcamSettings extends Thread {
 		avgS = avgS/avgColor.size();
 		avgV = avgV/avgColor.size();
 		
-		colorA.setBackground(PixelOperations.getHSVColor(avgH,avgS,avgV));
-		
-//		canvas.showImage(image);
+		canvas.showImage(image);
 	}
 	
 	public static void main(String[] args) {

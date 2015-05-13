@@ -71,10 +71,9 @@ public class CalibrateColors extends Thread {
 		setName("Main Thread");
 		// Select capturing camera
 		capture = opencv_highgui.cvCreateCameraCapture(0);
-//		capture = opencv_highgui.cvCreateFileCapture("video6.avi");
-
-		opencv_highgui.cvSetCaptureProperty(capture,opencv_highgui.CV_CAP_PROP_FRAME_HEIGHT, 960);
+		
 		opencv_highgui.cvSetCaptureProperty(capture,opencv_highgui.CV_CAP_PROP_FRAME_WIDTH, 1280);
+		opencv_highgui.cvSetCaptureProperty(capture,opencv_highgui.CV_CAP_PROP_FRAME_HEIGHT, 960);
 
 		long startingTime = System.currentTimeMillis();
 		long endtime = startingTime + calibrationTime * 1000;
@@ -82,7 +81,6 @@ public class CalibrateColors extends Thread {
 		while (System.currentTimeMillis() < endtime) {
 //			System.out.println("Capturing Image");
 			image = opencv_highgui.cvQueryFrame(capture);
-			
 			calibration();
 		}
 		
@@ -109,12 +107,11 @@ public class CalibrateColors extends Thread {
 		threadsDone = 0;
 		threadsRunning = 0;
 		
-		CvRect roi = cvRect(40, 85, 1160, 730);
-		
-		cvSetImageROI(image, roi);
-		IplImage croppedImage = IplImage.create(cvSize(roi.width(), roi.height()), 8, 3);
+//		CvRect roi = cvRect(40, 85, 1160, 730);
+//		cvSetImageROI(image, roi);
+		IplImage croppedImage = IplImage.create(cvSize(image.width(), image.height()), 8, 3);
 		cvCopy(image, croppedImage);
-		cvResetImageROI(image);
+//		cvResetImageROI(image);
 		
 		showImage(croppedImage);
 		
@@ -158,8 +155,7 @@ public class CalibrateColors extends Thread {
 		
 		for (int i = 0; i < numberOfCircles; i++) {
 			CvPoint3D32f point3D = new CvPoint3D32f(cvGetSeqElem(circles, i));
-			CircleMarker circle = new CircleMarker(point3D.x(), point3D.y(),
-					point3D.z());
+			CircleMarker circle = new CircleMarker(point3D.x(), point3D.y(), point3D.z());
 			CvPoint3D32f.deallocateReferences();
 			
 			int nullMarkers = 0;

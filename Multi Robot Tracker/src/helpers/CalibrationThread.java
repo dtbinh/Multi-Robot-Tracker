@@ -1,20 +1,12 @@
 package helpers;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.cvLine;
-import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
-
 import java.util.ArrayList;
 import java.util.Collections;
-
-import javax.swing.JFrame;
-import javax.swing.JTextField;
 
 import server.utils.CircleMarker;
 import server.utils.HSVColor;
 import server.utils.PixelOperations;
 
-import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 public class CalibrationThread extends Thread {
@@ -38,19 +30,11 @@ public class CalibrationThread extends Thread {
 
 	private CalibrateColors calibrateColors;
 	
-	JFrame window = new JFrame("Color");
-	JTextField colorA = new JTextField(3);
-	
 	
 	public CalibrationThread(CalibrateColors calibrateColors) {
 		this.calibrateColors = calibrateColors;
 
 		hsvList = new ArrayList<HSVColor>();
-		
-		window.getContentPane().add(colorA);
-		window.pack();
-		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.setVisible(true);
 	}
 
 	@Override
@@ -69,19 +53,18 @@ public class CalibrationThread extends Thread {
 				numberOfComputations++;
 
 				double[] hsv = getHSVMarkerColor(image, marker);
-				double[] corner = new double[]{0,0,100};
+//				double[] corner = new double[]{0,0,100};
 				
 //				colorA.setBackground(PixelOperations.getHSVColor((int)corner[0], (int)corner[1], (int)corner[2]));
 				
-				hsvList.add(new HSVColor(hsv[0], hsv[1], Math.min(hsv[2] + 100 - corner[2],100)));
+				hsvList.add(new HSVColor(hsv[0], hsv[1], hsv[2]));
 
 				calibrateColors.incrementThreadsDone();
 			}
 
 		} catch (Exception e) {
 			// e.printStackTrace();
-			System.out.println(Thread.currentThread().getName() + " was interrupeted!");
-			window.dispose();
+			System.out.println(Thread.currentThread().getName() + " was interrupted!");
 		}
 	}
 

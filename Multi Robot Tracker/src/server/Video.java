@@ -236,8 +236,8 @@ public class Video extends Thread{
 			cvLine(image, p, p, CvScalar.WHITE, 3, CV_AA, 0);
 			
 			double[] hsv = getHSVMarkerColor(croppedImage, (int)circle.getX(), (int)circle.getY());
-			double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
-			Integer robotID = getColorId(hsv[0], hsv[1],Math.min(hsv[2] + 100 - corner[2],100));
+//			double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
+			Integer robotID = getColorId(hsv[0], hsv[1], hsv[2]);
 //			System.out.println("Robot ID: " + robotID);
 			if(robotID != null){
 				int times = colorAppearances.get(robotID);
