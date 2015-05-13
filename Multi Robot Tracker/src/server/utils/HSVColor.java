@@ -32,9 +32,9 @@ public class HSVColor implements Comparable<HSVColor> {
 
 	@Override
 	public int compareTo(HSVColor o) {
-		if(this.getBrightness() - o.getBrightness() > 0){
+		if(this.getHue() - o.getHue() > 0){
 			return 1;
-		}else if(this.getBrightness() - o.getBrightness() < 0){
+		}else if(this.getHue() - o.getHue() < 0){
 			return -1;
 		}else
 			return 0;

@@ -1,7 +1,20 @@
 package helpers;
 
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
+import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvSize;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -31,7 +44,6 @@ import server.utils.PixelOperations;
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint3D32f;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_highgui;
@@ -158,30 +170,31 @@ public class CalibrateColors extends Thread {
 			CircleMarker circle = new CircleMarker(point3D.x(), point3D.y(), point3D.z());
 			CvPoint3D32f.deallocateReferences();
 			
-			int nullMarkers = 0;
+			double minDist = Double.MAX_VALUE;
+			CalibrationThread closerCircleThread = null;
 			CalibrationThread nullMarkerThread = null;
 			
 			for (CalibrationThread t : calibrationThreads) {
 				if(t.getMarker() != null){
 					CircleMarker m = t.getMarker();
 					double dist = circle.calculateDistance(m);
-					if(dist <= Video.markerRadius){
-						t.setParameters(croppedImage, circle);
-						threadsRunning++;
-						nullMarkerThread = null;
-						break;
+					if(dist <= Video.markerRadius && dist < minDist){
+						closerCircleThread = t;
+						minDist = dist;
 					}
 				}else{
-					nullMarkers++;
 					nullMarkerThread = t;
 				}
 			}
 			
-			if(nullMarkers > 0 && nullMarkerThread != null){
+			if(closerCircleThread != null){
+				closerCircleThread.setParameters(croppedImage, circle);
+				threadsRunning++;
+			}else if (nullMarkerThread != null){
 				nullMarkerThread.setParameters(croppedImage, circle);
 				threadsRunning++;
 			}
-				
+							
 		}
 		
 		synchronized (this) {

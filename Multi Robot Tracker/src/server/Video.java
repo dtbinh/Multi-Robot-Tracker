@@ -219,7 +219,8 @@ public class Video extends Thread{
 //			cvResetImageROI(image);
 		
 		int numberOfCircles = circles.total();
-//		System.out.println(numberOfCircles);
+		if(numberOfCircles == 0)
+			System.out.println("Not detecting any circle");
 		
 		LinkedList<Integer> colorsList = new LinkedList<Integer>();
 		for (int i = 0; i < colorsIntervals.length; i++) 
