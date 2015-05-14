@@ -16,7 +16,6 @@ import tracking.Robot;
 
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
-
 import commoninterface.mathutils.Vector2d;
 import commoninterface.network.broadcast.VirtualPositionBroadcastMessage;
 import commoninterface.network.broadcast.VirtualPositionBroadcastMessage.VirtualPositionType;
@@ -55,7 +54,7 @@ public class ServerEnvironment {
 				while(true){
 					synchronized (virtualPositionMessages) {
 						for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
-							locationServer.sendMessage(m.encode());
+							locationServer.sendMessage(m.encode()[0]);
 //							System.out.println("Message send!");
 						}
 					}
