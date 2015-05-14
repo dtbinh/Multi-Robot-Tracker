@@ -1,25 +1,14 @@
 package helpers;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
-import static com.googlecode.javacv.cpp.opencv_core.cvLine;
-import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvSize;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import server.utils.CircleMarker;
 import server.utils.HSVColor;
@@ -37,12 +26,23 @@ import com.googlecode.javacv.cpp.opencv_highgui.CvCapture;
 
 public class WebcamSettings extends Thread {
 	
-	private CanvasFrame canvas;
+	private CanvasFrame canvasOriginal;
+	private CanvasFrame canvasDetection;
+	private JFrame detectingColors;
 	private IplImage image;
 		
 	public WebcamSettings() {
-		canvas = new CanvasFrame("Camera");
-		canvas.setPreferredSize(new Dimension(600, 400));
+		canvasOriginal = new CanvasFrame("Camera");
+		canvasDetection = new CanvasFrame("Detecting");
+		canvasOriginal.setPreferredSize(new Dimension(600, 400));
+		canvasDetection.setPreferredSize(new Dimension(600, 400));
+		canvasDetection.setLocation(600, 0);
+		
+		detectingColors = new JFrame("Detecting Colors");
+		detectingColors.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		detectingColors.setLocationRelativeTo(null);
+		detectingColors.setSize(100, 100);
+		detectingColors.setVisible(true);
 	}
 	
 	@Override
@@ -92,7 +92,7 @@ public class WebcamSettings extends Thread {
 //		cvErode(imageGray, imageGray, null, 5);
 		
 		cvSmooth(imageGray, imageGray, CV_GAUSSIAN, 3);
-//		canvas.showImage(imageGray);
+		canvasDetection.showImage(imageGray);
 		
 		cvCanny(imageGray, imageGray, 100, 100, 3);// 100 100 3
 //		canvas.showImage(imageGray);
@@ -116,19 +116,19 @@ public class WebcamSettings extends Thread {
 		
 		getMarkerColor(croppedImage, circles, numberOfCircles);
 		
-		System.out.println(" ----------- ");
-		
 		cvReleaseMemStorage(circles.storage());
 		
 		imageGray.release();
 		croppedImage.release();
 	}
 
-	private void getMarkerColor(IplImage croppedImage, CvSeq circles,
-			int numberOfCircles) {
-		System.out.println("Colors Obtained: ");
+	private void getMarkerColor(IplImage croppedImage, CvSeq circles, int numberOfCircles) {
+		detectingColors.getContentPane().removeAll();
+		detectingColors.getContentPane().setLayout(new GridLayout(1, numberOfCircles));
+		
 		for (int i = 0; i < numberOfCircles; i++) {
 			ArrayList<HSVColor> colors = new ArrayList<HSVColor>();
+			ArrayList<CvPoint> points = new ArrayList<CvPoint>();
 			
 			CvPoint3D32f point3D = new CvPoint3D32f(cvGetSeqElem(circles, i));
 			CircleMarker circle = new CircleMarker(point3D.x(), point3D.y(),point3D.z());
@@ -136,62 +136,87 @@ public class WebcamSettings extends Thread {
 			
 			int sampleRange = 2;
 			
-			double[] hsv = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX(),(int)circle.getY());
+			CvPoint p1 = cvPoint((int)circle.getX(), (int)circle.getY());
+			double[] hsv = PixelOperations.getPixelHSV(croppedImage, p1.x(),p1.y());
 			colors.add(new HSVColor(hsv[0], hsv[1], hsv[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX(), (int)circle.getY()), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p1);
 			
-			double[] hsv2 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX(),(int)circle.getY()-sampleRange);
+			CvPoint p2 = cvPoint((int)circle.getX(), (int)circle.getY()-sampleRange);
+			double[] hsv2 = PixelOperations.getPixelHSV(croppedImage, p2.x(), p2.y());
 			colors.add(new HSVColor(hsv2[0], hsv2[1], hsv2[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX(), (int)circle.getY()-sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p2);
 			
-			double[] hsv3 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()-sampleRange,(int)circle.getY()-sampleRange);
+			CvPoint p3 = cvPoint((int)circle.getX()-sampleRange,(int)circle.getY()-sampleRange);
+			double[] hsv3 = PixelOperations.getPixelHSV(croppedImage, p3.x(), p3.y());
 			colors.add(new HSVColor(hsv3[0], hsv3[1], hsv3[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()-sampleRange, (int)circle.getY()-sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p3);
 			
-			double[] hsv4 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()+sampleRange,(int)circle.getY()-sampleRange);
+			CvPoint p4 = cvPoint((int)circle.getX()+sampleRange,(int)circle.getY()-sampleRange);
+			double[] hsv4 = PixelOperations.getPixelHSV(croppedImage, p4.x(), p4.y());
 			colors.add(new HSVColor(hsv4[0], hsv4[1], hsv4[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()+sampleRange, (int)circle.getY()-sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p4);
 			
-			double[] hsv5 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()-sampleRange,(int)circle.getY());
+			CvPoint p5 = cvPoint((int)circle.getX()-sampleRange,(int)circle.getY());
+			double[] hsv5 = PixelOperations.getPixelHSV(croppedImage, p5.x(), p5.y());
 			colors.add(new HSVColor(hsv5[0], hsv5[1], hsv5[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()-sampleRange, (int)circle.getY()), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p5);
 			
-			double[] hsv6 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()+sampleRange,(int)circle.getY());
+			CvPoint p6 = cvPoint((int)circle.getX()+sampleRange,(int)circle.getY());
+			double[] hsv6 = PixelOperations.getPixelHSV(croppedImage, p6.x(), p6.y());
 			colors.add(new HSVColor(hsv6[0], hsv6[1], hsv6[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()+sampleRange, (int)circle.getY()), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p6);
 			
-			double[] hsv7 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX(),(int)circle.getY()+sampleRange);
+			CvPoint p7 = cvPoint((int)circle.getX(),(int)circle.getY()+sampleRange);
+			double[] hsv7 = PixelOperations.getPixelHSV(croppedImage, p7.x(), p7.y());
 			colors.add(new HSVColor(hsv7[0], hsv7[1], hsv7[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX(), (int)circle.getY()+sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p7);
 			
-			double[] hsv8 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()-sampleRange,(int)circle.getY()+sampleRange);
+			CvPoint p8 = cvPoint((int)circle.getX()-sampleRange,(int)circle.getY()+sampleRange);
+			double[] hsv8 = PixelOperations.getPixelHSV(croppedImage, p8.x(), p8.y());
 			colors.add(new HSVColor(hsv8[0], hsv8[1], hsv8[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()-sampleRange, (int)circle.getY()+sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p8);
 			
-			double[] hsv9 = PixelOperations.getPixelHSV(croppedImage, (int)circle.getX()+sampleRange,(int)circle.getY()+sampleRange);
+			CvPoint p9 = cvPoint((int)circle.getX()+sampleRange,(int)circle.getY()+sampleRange);
+			double[] hsv9 = PixelOperations.getPixelHSV(croppedImage, p9.x(), p9.y());
 			colors.add(new HSVColor(hsv9[0], hsv9[1], hsv9[2]));
-//			cvLine(croppedImage, cvPoint((int)circle.getX(), (int)circle.getY()), cvPoint((int)circle.getX()+sampleRange, (int)circle.getY()+sampleRange), CvScalar.RED, 5, CV_AA, 0);
+			points.add(p9);
 			
-			double hue = 0;
+//			seeColorCollectingPoints(croppedImage, points);
+			
+			double hueX = 0;
+			double hueY = 0;
 			double saturation = 0;
 			double brightness = 0;
-			int size = 0;
+			double size = 0;
 			
 			for (HSVColor c : colors) {
-				hue += c.getHue();
+				hueX += Math.cos(c.getHue() / 180 * Math.PI);
+				hueY += Math.sin(c.getHue() / 180 * Math.PI);
+				
 				saturation += c.getSaturation();
 				brightness += c.getBrightness();
 				size++;
 			}
 			
-			hue /= size;
+			hueX /= size;
+			hueY /= size;
+			
+			double hue = Math.atan2(hueY, hueX) * 180 / Math.PI;
 			saturation /= size;
 			brightness /= size;
 			
-			System.out.println("H: " + Math.round(hue) + ", S: " + Math.round(saturation) + ", V: " + Math.round(brightness));
+			JPanel p = new JPanel();
+			p.setBackground(PixelOperations.getHSVColor(hue, saturation, brightness));
+			detectingColors.getContentPane().add(p);
 			
-//			canvas.showImage(croppedImage);
+			canvasOriginal.showImage(croppedImage);
 		}
+		detectingColors.validate();
+	}
+
+	private void seeColorCollectingPoints(IplImage image, ArrayList<CvPoint> points) {
+		for (CvPoint cvPoint : points)
+			cvLine(image, cvPoint, cvPoint, CvScalar.RED, 5, CV_AA, 0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -223,7 +248,7 @@ public class WebcamSettings extends Thread {
 		avgS = avgS/avgColor.size();
 		avgV = avgV/avgColor.size();
 		
-		canvas.showImage(image);
+//		canvas.showImage(image);
 	}
 	
 	public static void main(String[] args) {
