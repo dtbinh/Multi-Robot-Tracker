@@ -14,7 +14,6 @@ public class LocationServer implements Serializable{
 	private static int PORT = 8888;
 	private static int RETRANSMIT_PORT = 8888+100;
 	private BroadcastSender sender;
-	private String ownAddress;
 	private boolean retransmit = true;
 	
 	
@@ -34,7 +33,7 @@ public class LocationServer implements Serializable{
 		public BroadcastSender() {
 			try {
 				InetAddress ownInetAddress = InetAddress.getByName(NetworkUtils.getAddress());
-				ownAddress = ownInetAddress.getHostAddress();
+//				ownAddress = ownInetAddress.getHostAddress();
 				System.out.println("SENDER "+ownInetAddress);
 				socket = new DatagramSocket(PORT+1, ownInetAddress);
 				socket.setBroadcast(true);

@@ -53,10 +53,6 @@ public class CalibrationThread extends Thread {
 				numberOfComputations++;
 
 				double[] hsv = getHSVMarkerColor(image, marker);
-//				double[] corner = new double[]{0,0,100};
-				
-//				colorA.setBackground(PixelOperations.getHSVColor((int)corner[0], (int)corner[1], (int)corner[2]));
-				
 				hsvList.add(new HSVColor(hsv[0], hsv[1], hsv[2]));
 
 				calibrateColors.incrementThreadsDone();
@@ -69,6 +65,33 @@ public class CalibrationThread extends Thread {
 	}
 
 	private double[] getHSVMarkerColor(IplImage img, CircleMarker circle){
+		ArrayList<HSVColor> colors = obtainMakerColorSamples(img, circle);
+		
+		double hueX = 0;
+		double hueY = 0;
+		double saturation = 0;
+		double brightness = 0;
+		double size = 0;
+		
+		for (HSVColor c : colors) {
+			hueX += Math.cos(c.getHue() / 180 * Math.PI);
+			hueY += Math.sin(c.getHue() / 180 * Math.PI);
+			saturation += c.getSaturation();
+			brightness += c.getBrightness();
+			size++;
+		}
+		
+		hueX /= size;
+		hueY /= size;
+		saturation /= size;
+		brightness /= size;
+		
+		double hue = Math.atan2(hueY, hueX) * 180 / Math.PI;
+		
+		return new double[] {hue,saturation,brightness};
+	}
+
+	private ArrayList<HSVColor> obtainMakerColorSamples(IplImage img, CircleMarker circle) {
 		ArrayList<HSVColor> colors = new ArrayList<HSVColor>();
 		
 		int sampleRange = 2;
@@ -100,23 +123,7 @@ public class CalibrationThread extends Thread {
 		double[] hsv9 = PixelOperations.getPixelHSV(img, (int)circle.getX()+sampleRange,(int)circle.getY()+sampleRange);
 		colors.add(new HSVColor(hsv9[0], hsv9[1], hsv9[2]));
 		
-		double hue = 0;
-		double saturation = 0;
-		double brightness = 0;
-		int size = 0;
-		
-		for (HSVColor c : colors) {
-			hue += c.getHue();
-			saturation += c.getSaturation();
-			brightness += c.getBrightness();
-			size++;
-		}
-		
-		hue /= size;
-		saturation /= size;
-		brightness /= size;
-		
-		return new double[] {hue,saturation,brightness};
+		return colors;
 	}
 	
 	public synchronized void setParameters(IplImage image, CircleMarker marker) {

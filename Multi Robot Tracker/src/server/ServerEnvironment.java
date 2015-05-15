@@ -54,7 +54,9 @@ public class ServerEnvironment {
 				while(true){
 					synchronized (virtualPositionMessages) {
 						for (VirtualPositionBroadcastMessage m : virtualPositionMessages){
-							locationServer.sendMessage(m.encode()[0]);
+							String[] encondedMessages = m.encode();
+							for (String em : encondedMessages) 
+								locationServer.sendMessage(em);
 //							System.out.println("Message send!");
 						}
 					}

@@ -1,7 +1,23 @@
 package server;
 
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
+import static com.googlecode.javacv.cpp.opencv_core.cvLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
+import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvSize;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RGB2GRAY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughCircles;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
 import helpers.MeasureLatencyServer;
 
 import java.awt.Color;
@@ -24,13 +40,11 @@ import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint3D32f;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_highgui;
 import com.googlecode.javacv.cpp.opencv_highgui.CvCapture;
-
 import commoninterface.mathutils.Vector2d;
 
 /**
@@ -70,7 +84,7 @@ import commoninterface.mathutils.Vector2d;
  */
 public class Video extends Thread{
 	static int widthRoi = 100;
-	public static double markerRadius = 40;
+	public static double markerRadius = 60;
 	
 	public int frames = 0;
 	public int successAngle = 0;
@@ -147,7 +161,7 @@ public class Video extends Thread{
 				break;
 			} else {
 //				drawpoint();
-//				countFramesPerSecond();
+				countFramesPerSecond(false );
 				processImage();
 			}
 		}	
@@ -237,7 +251,6 @@ public class Video extends Thread{
 			cvLine(image, p, p, CvScalar.WHITE, 3, CV_AA, 0);
 			
 			double[] hsv = getHSVMarkerColor(croppedImage, (int)circle.getX(), (int)circle.getY());
-//			double[] corner = PixelOperations.getPixelHSV(image,p.x(),p.y());
 			Integer robotID = getColorId(hsv[0], hsv[1], hsv[2]);
 //			System.out.println("Robot ID: " + robotID);
 			if(robotID != null){
@@ -255,7 +268,8 @@ public class Video extends Thread{
 //						System.out.println("Robot ID: " + robotID + ", distance: " + dist);
 						if(dist <= markerRadius){
 							addToCirclesMap(robotID, circle, hsv);
-						}//else
+						}//TODO: check this
+//						else
 //							System.out.println("Long distance -> X: " + circle.getX() + ", Y: " + circle.getY() + ", oldX: " + oldCircle.getX() + ", oldY: " + oldCircle.getY());
 					}else{
 						addToCirclesMap(robotID, circle, hsv);
@@ -383,6 +397,33 @@ public class Video extends Thread{
 	
 	
 	private double[] getHSVMarkerColor(IplImage img, int markerX, int markerY){
+		ArrayList<HSVColor> colors = obtainMakerColorSamples(img, markerX,markerY);
+		
+		double hueX = 0;
+		double hueY = 0;
+		double saturation = 0;
+		double brightness = 0;
+		double size = 0;
+		
+		for (HSVColor c : colors) {
+			hueX += Math.cos(c.getHue() / 180 * Math.PI);
+			hueY += Math.sin(c.getHue() / 180 * Math.PI);
+			saturation += c.getSaturation();
+			brightness += c.getBrightness();
+			size++;
+		}
+		
+		hueX /= size;
+		hueY /= size;
+		saturation /= size;
+		brightness /= size;
+		
+		double hue = Math.atan2(hueY, hueX) * 180 / Math.PI;
+		
+		return new double[] {hue,saturation,brightness};
+	}
+
+	private ArrayList<HSVColor> obtainMakerColorSamples(IplImage img,int markerX, int markerY) {
 		ArrayList<HSVColor> colors = new ArrayList<HSVColor>();
 		
 		int sampleRange = 2;
@@ -413,24 +454,7 @@ public class Video extends Thread{
 		
 		double[] hsv9 = PixelOperations.getPixelHSV(img, markerX + sampleRange, markerY + sampleRange);
 		colors.add(new HSVColor(hsv9[0], hsv9[1], hsv9[2]));
-		
-		double hue = 0;
-		double saturation = 0;
-		double brightness = 0;
-		int size = 0;
-		
-		for (HSVColor c : colors) {
-			hue += c.getHue();
-			saturation += c.getSaturation();
-			brightness += c.getBrightness();
-			size++;
-		}
-		
-		hue /= size;
-		saturation /= size;
-		brightness /= size;
-		
-		return new double[] {hue,saturation,brightness};
+		return colors;
 	}
 	
 	private void addToCirclesMap(Integer robotID, CircleMarker circle, double[] hsv) {
@@ -516,19 +540,20 @@ public class Video extends Thread{
 		}
 	}
 	
-	private void countFramesPerSecond() {
-		
-		double timeElapsed = (System.currentTimeMillis()-startingTime)/1000.0;
-		
-		if(frames > 100)
-			System.out.println("fps: "+((frames-100)/timeElapsed +" "+(frames-100)));
-		else
-			startingTime = System.currentTimeMillis();
-		
-		frames++;
-		
-		if(frames > 200)
-			frames = 99;
+	private void countFramesPerSecond(boolean show) {
+		if(show){
+			double timeElapsed = (System.currentTimeMillis()-startingTime)/1000.0;
+			
+			if(frames > 100)
+				System.out.println("fps: "+((frames-100)/timeElapsed +" "+(frames-100)));
+			else
+				startingTime = System.currentTimeMillis();
+			
+			frames++;
+			
+			if(frames > 200)
+				frames = 99;
+		}
 		
 	}
 	

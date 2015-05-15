@@ -1,7 +1,28 @@
 package server;
 
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.CV_RGB;
+import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvFastArctan;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvNot;
+import static com.googlecode.javacv.cpp.opencv_core.cvPoint;
+import static com.googlecode.javacv.cpp.opencv_core.cvRect;
+import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvResetImageROI;
+import static com.googlecode.javacv.cpp.opencv_core.cvSetImageROI;
+import static com.googlecode.javacv.cpp.opencv_core.cvSize;
+import static com.googlecode.javacv.cpp.opencv_core.cvZero;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_BGR2GRAY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_HOUGH_PROBABILISTIC;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_THRESH_BINARY;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvErode;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvHoughLines2;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvThreshold;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,7 +36,6 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 
 import server.utils.CircleMarker;
-import server.utils.PixelOperations;
 import tracking.RobotKalman;
 
 import com.googlecode.javacpp.Pointer;
@@ -159,9 +179,9 @@ public class ComputateCrossMarker extends Thread {
 			
 			cvCvtColor(maskedImage, thresholdedCross, CV_BGR2GRAY);
 			
-			int[] rgb = PixelOperations.getPixelRGB(image, (int)markerCircle.getX(), (int)markerCircle.getY());
+//			int[] rgb = PixelOperations.getPixelRGB(image, (int)markerCircle.getX(), (int)markerCircle.getY());
 //			System.out.println("R: " + rgb[0] +" G: "+ rgb[1] + " B: " + rgb[2]);
-			int avgRGB = (int)((rgb[0] + rgb[1] + rgb[2])/3/2);
+//			int avgRGB = (int)((rgb[0] + rgb[1] + rgb[2])/3/2);
 			
 			//Extract cross
 			cvThreshold(thresholdedCross, thresholdedCross, 120, 255, CV_THRESH_BINARY);
