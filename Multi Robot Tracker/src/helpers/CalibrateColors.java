@@ -62,7 +62,7 @@ public class CalibrateColors extends Thread {
 	private Border border;
 
 	private LinkedList<CalibrationThread> calibrationThreads;
-	private HashMap<JTextField, Integer[]> colorIds;
+	private HashMap<JTextField, double[]> colorIds;
 	
 	private boolean firstTime = true;
 	private int threadsDone = 0;
@@ -70,7 +70,7 @@ public class CalibrateColors extends Thread {
 	
 	public CalibrateColors() {
 		calibrationThreads = new LinkedList<CalibrationThread>();
-		colorIds = new HashMap<JTextField, Integer[]>();
+		colorIds = new HashMap<JTextField, double[]>();
 		border = BorderFactory.createLineBorder(Color.BLACK);
 		
 		canvas = new CanvasFrame("Camera");
@@ -224,28 +224,28 @@ public class CalibrateColors extends Thread {
 
 		for (CalibrationThread t : calibrationThreads) {
 			
-			int minH = validateValue(t.getResult()[0] - COLOR_THRESHOLD);
-			int maxH = validateValue(t.getResult()[1] + COLOR_THRESHOLD);
+			double minH = validateValue(t.getResult()[0] - COLOR_THRESHOLD);
+			double maxH = validateValue(t.getResult()[1] + COLOR_THRESHOLD);
 
-			int minS = t.getResult()[2];
-			int maxS = t.getResult()[3];
+			double minS = t.getResult()[2];
+			double maxS = t.getResult()[3];
 
-			int minV = t.getResult()[4];
-			int maxV = t.getResult()[5];
+			double minV = t.getResult()[4];
+			double maxV = t.getResult()[5];
 			
-			Integer[] colorInterval = new Integer[]{minH,maxH,minS,maxS,minV,maxV};
+			double[] colorInterval = new double[]{minH,maxH,minS,maxS,minV,maxV};
 			
 			HSVColor minHSVColor = t.getHsvList().get(0);
 			HSVColor maxHSVColor = t.getHsvList().get(t.getHsvList().size()-1);
 			
-			int colorMinH = (int) minHSVColor.getHue() - COLOR_THRESHOLD;
-			int colorMaxH = (int) maxHSVColor.getHue() + COLOR_THRESHOLD;
+			double colorMinH = minHSVColor.getHue() - COLOR_THRESHOLD;
+			double colorMaxH = maxHSVColor.getHue() + COLOR_THRESHOLD;
 
-			int colorMinS = (int) minHSVColor.getSaturation();
-			int colorMaxS = (int) maxHSVColor.getSaturation();
+			double colorMinS = minHSVColor.getSaturation();
+			double colorMaxS = maxHSVColor.getSaturation();
 
-			int colorMinV = (int) minHSVColor.getBrightness();
-			int colorMaxV = (int) maxHSVColor.getBrightness();
+			double colorMinV = minHSVColor.getBrightness();
+			double colorMaxV = maxHSVColor.getBrightness();
 			
 			JTextArea minColorArea = new JTextArea();
 			minColorArea.setBackground(PixelOperations.getHSVColor(colorMinH, colorMinS,colorMinV));
@@ -335,7 +335,7 @@ public class CalibrateColors extends Thread {
 		colorsRangeFrame.setVisible(true);
 	}
 	
-	public int validateValue(int value) {
+	public double validateValue(double value) {
 		if (value < 0)
 			return 0;
 		else if (value > 360)
@@ -344,7 +344,7 @@ public class CalibrateColors extends Thread {
 			return value;
 	}
 	
-	private String printArray(Integer[] array){
+	private String printArray(double[] array){
 		return array[0] + "," + array[1] + "," + array[2] + "," + array[3] + "," + array[4] + "," + array[5];
 	}
 

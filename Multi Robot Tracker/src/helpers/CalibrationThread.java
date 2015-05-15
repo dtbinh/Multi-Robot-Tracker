@@ -134,8 +134,8 @@ public class CalibrationThread extends Thread {
 		notifyAll();
 	}
 
-	public int[] calculateResult() {
-		int[] result = new int[6];
+	public double[] calculateResult() {
+		double[] result = new double[6];
 
 		Collections.sort(hsvList);
 		
@@ -178,12 +178,12 @@ public class CalibrationThread extends Thread {
 		}
 	
 		// criar a linha da matriz
-		result[0] = (int) minH;
-		result[1] = (int) Math.round(maxH);
-		result[2] = (int) minS;
-		result[3] = (int) Math.round(maxS);
-		result[4] = (int) minV;
-		result[5] = (int) Math.round(maxV);
+		result[0] = minH;
+		result[1] = Math.round(maxH);
+		result[2] = minS;
+		result[3] = Math.round(maxS);
+		result[4] = minV;
+		result[5] = Math.round(maxV);
 	
 		return result;
 	}
@@ -196,7 +196,7 @@ public class CalibrationThread extends Thread {
 		return marker;
 	}
 
-	public int[] getResult() {
+	public double[] getResult() {
 		return calculateResult();
 	}
 

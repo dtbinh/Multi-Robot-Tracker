@@ -155,9 +155,12 @@ public class WebcamSettings extends Thread {
 			p.setBackground(PixelOperations.getHSVColor(hue, saturation, brightness));
 			detectingColors.getContentPane().add(p);
 			
+			System.out.println("H: " + hue + ", S: " + saturation +  "V: " + brightness);
+			
 			canvasOriginal.showImage(croppedImage);
 		}
 		detectingColors.validate();
+		System.out.println(" ------- ");
 	}
 
 	private ArrayList<HSVColor> obtainMakerColorSamples(IplImage croppedImage, CvSeq circles, int i, boolean seePoints) {
