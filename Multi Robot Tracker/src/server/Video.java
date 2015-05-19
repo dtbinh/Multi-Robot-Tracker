@@ -84,7 +84,7 @@ import commoninterface.mathutils.Vector2d;
  */
 public class Video extends Thread{
 	static int widthRoi = 100;
-	public static double markerRadius = 60;
+	public static double markerRadius = 80;
 	
 	public int frames = 0;
 	public int successAngle = 0;
