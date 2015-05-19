@@ -224,8 +224,8 @@ public class CalibrateColors extends Thread {
 
 		for (CalibrationThread t : calibrationThreads) {
 			
-			int minH = validateValue(t.getResult()[0] - COLOR_THRESHOLD);
-			int maxH = validateValue(t.getResult()[1] + COLOR_THRESHOLD);
+			int minH = t.getResult()[0];
+			int maxH = t.getResult()[1];
 
 			int minS = t.getResult()[2];
 			int maxS = t.getResult()[3];
